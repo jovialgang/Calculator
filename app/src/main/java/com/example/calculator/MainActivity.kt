@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -43,12 +44,19 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-val buttons = listOf(
-    listOf("7", "8", "9", "÷"),
-    listOf("4", "5", "6", "×"),
-    listOf("1", "2", "3", "-"),
-    listOf("AC", "0", "=", "+")
+fun buttons(clear: String) = listOf(
+    listOf(clear, "÷"),
+    listOf("7", "8", "9", "×"),
+    listOf("4", "5", "6", "-"),
+    listOf("1", "2", "3", "+"),
+    listOf("0", ".", "=")
 )
+
+fun width(label: String) = when (label) {
+    "AC", "C" -> 3f
+    "0" -> 2f
+    else -> 1f
+}
 
 fun calculate(a: Double, b: Double, operation: String): Double = when (operation) {
     "+" -> a + b
@@ -74,6 +82,10 @@ fun Calculator(modifier: Modifier = Modifier) {
     fun press(label: String) {
         val current = display.toDoubleOrNull() ?: 0.0
         when (label) {
+            "C" -> {
+                display = "0"
+                newNumber = true
+            }
             "AC" -> {
                 display = "0"
                 operand = 0.0
@@ -95,6 +107,14 @@ fun Calculator(modifier: Modifier = Modifier) {
                     newNumber = true
                 }
             }
+            "." -> {
+                if (newNumber) {
+                    display = "0."
+                    newNumber = false
+                } else if (!display.contains(".")) {
+                    display += "."
+                }
+            }
             else -> {
                 if (newNumber) {
                     display = label
@@ -106,16 +126,17 @@ fun Calculator(modifier: Modifier = Modifier) {
         }
     }
 
+    val clear = if (display == "0") "AC" else "C"
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     if (landscape) {
         Row(modifier.fillMaxSize().padding(8.dp)) {
             Display(display, Modifier.weight(1f).fillMaxHeight())
-            Keypad({ label -> press(label) }, Modifier.weight(1f).fillMaxHeight())
+            Keypad(clear, { label -> press(label) }, Modifier.weight(1f).fillMaxHeight())
         }
     } else {
         Column(modifier.fillMaxSize().padding(8.dp)) {
             Display(display, Modifier.weight(1f).fillMaxWidth())
-            Keypad({ label -> press(label) }, Modifier.weight(3f).fillMaxWidth())
+            Keypad(clear, { label -> press(label) }, Modifier.weight(3f).fillMaxWidth())
         }
     }
 }
@@ -123,19 +144,21 @@ fun Calculator(modifier: Modifier = Modifier) {
 @Composable
 fun Display(text: String, modifier: Modifier = Modifier) {
     Box(modifier.padding(16.dp), contentAlignment = Alignment.CenterEnd) {
-        Text(text = text, fontSize = 40.sp, maxLines = 1)
+        SelectionContainer {
+            Text(text = text, fontSize = 40.sp, maxLines = 1)
+        }
     }
 }
 
 @Composable
-fun Keypad(onPress: (String) -> Unit, modifier: Modifier = Modifier) {
+fun Keypad(clear: String, onPress: (String) -> Unit, modifier: Modifier = Modifier) {
     Column(modifier) {
-        for (row in buttons) {
+        for (row in buttons(clear)) {
             Row(Modifier.weight(1f).fillMaxWidth()) {
                 for (label in row) {
                     Button(
                         onClick = { onPress(label) },
-                        modifier = Modifier.weight(1f).fillMaxHeight().padding(4.dp)
+                        modifier = Modifier.weight(width(label)).fillMaxHeight().padding(4.dp)
                     ) {
                         Text(text = label, fontSize = 20.sp)
                     }

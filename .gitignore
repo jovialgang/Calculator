@@ -1,0 +1,23 @@
+# Gradle
+.gradle/
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Kotlin
+.kotlin/
+
+# Локальные настройки (пути к SDK, ключи) — никогда не коммитить
+local.properties
+
+# IDE
+*.iml
+.idea/
+
+# Ключи подписи
+*.jks
+*.keystore
+
+# macOS
+.DS_Store

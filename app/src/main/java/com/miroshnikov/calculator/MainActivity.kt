@@ -1,4 +1,4 @@
-package com.example.calculator
+package com.miroshnikov.calculator
 
 import android.content.res.Configuration
 import android.os.Bundle
@@ -22,21 +22,30 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.calculator.ui.theme.CalculatorTheme
+import com.miroshnikov.calculator.ui.theme.CalculatorTheme
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalComposeUiApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             CalculatorTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .semantics { testTagsAsResourceId = true }
+                ) { innerPadding ->
                     Calculator(Modifier.padding(innerPadding))
                 }
             }
@@ -44,8 +53,8 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-fun buttons(clear: String) = listOf(
-    listOf(clear, "÷"),
+val buttons = listOf(
+    listOf("C", "÷"),
     listOf("7", "8", "9", "×"),
     listOf("4", "5", "6", "-"),
     listOf("1", "2", "3", "+"),
@@ -53,7 +62,7 @@ fun buttons(clear: String) = listOf(
 )
 
 fun width(label: String) = when (label) {
-    "AC", "C" -> 3f
+    "C" -> 3f
     "0" -> 2f
     else -> 1f
 }
@@ -83,13 +92,11 @@ fun Calculator(modifier: Modifier = Modifier) {
         val current = display.toDoubleOrNull() ?: 0.0
         when (label) {
             "C" -> {
+                if (display == "0") {
+                    operand = 0.0
+                    operation = ""
+                }
                 display = "0"
-                newNumber = true
-            }
-            "AC" -> {
-                display = "0"
-                operand = 0.0
-                operation = ""
                 newNumber = true
             }
             "+", "-", "×", "÷" -> {
@@ -126,17 +133,16 @@ fun Calculator(modifier: Modifier = Modifier) {
         }
     }
 
-    val clear = if (display == "0") "AC" else "C"
     val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     if (landscape) {
         Row(modifier.fillMaxSize().padding(8.dp)) {
             Display(display, Modifier.weight(1f).fillMaxHeight())
-            Keypad(clear, { label -> press(label) }, Modifier.weight(1f).fillMaxHeight())
+            Keypad({ label -> press(label) }, Modifier.weight(1f).fillMaxHeight())
         }
     } else {
         Column(modifier.fillMaxSize().padding(8.dp)) {
             Display(display, Modifier.weight(1f).fillMaxWidth())
-            Keypad(clear, { label -> press(label) }, Modifier.weight(3f).fillMaxWidth())
+            Keypad({ label -> press(label) }, Modifier.weight(3f).fillMaxWidth())
         }
     }
 }
@@ -145,15 +151,20 @@ fun Calculator(modifier: Modifier = Modifier) {
 fun Display(text: String, modifier: Modifier = Modifier) {
     Box(modifier.padding(16.dp), contentAlignment = Alignment.CenterEnd) {
         SelectionContainer {
-            Text(text = text, fontSize = 40.sp, maxLines = 1)
+            Text(
+                text = text,
+                fontSize = 40.sp,
+                maxLines = 1,
+                modifier = Modifier.testTag("result")
+            )
         }
     }
 }
 
 @Composable
-fun Keypad(clear: String, onPress: (String) -> Unit, modifier: Modifier = Modifier) {
+fun Keypad(onPress: (String) -> Unit, modifier: Modifier = Modifier) {
     Column(modifier) {
-        for (row in buttons(clear)) {
+        for (row in buttons) {
             Row(Modifier.weight(1f).fillMaxWidth()) {
                 for (label in row) {
                     Button(

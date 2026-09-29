@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.calculator"
+    namespace = "com.miroshnikov.calculator"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.calculator"
+        applicationId = "com.miroshnikov.calculator"
         minSdk = 24
         targetSdk = 37
         versionCode = 1

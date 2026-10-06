@@ -100,12 +100,17 @@ fun Calculator(modifier: Modifier = Modifier) {
                 newNumber = true
             }
             "+", "-", "×", "÷" -> {
-                if (operation != "" && !newNumber) {
-                    display = format(calculate(operand, current, operation))
+                if (label == "-" && newNumber && operation != "") {
+                    display = "-"
+                    newNumber = false
+                } else {
+                    if (operation != "" && !newNumber) {
+                        display = format(calculate(operand, current, operation))
+                    }
+                    operand = display.toDoubleOrNull() ?: 0.0
+                    operation = label
+                    newNumber = true
                 }
-                operand = display.toDoubleOrNull() ?: 0.0
-                operation = label
-                newNumber = true
             }
             "=" -> {
                 if (operation != "") {
